@@ -1,7 +1,11 @@
 package com.example.myapplication.Shape;
 
 import android.graphics.Bitmap;
+import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.RectF;
+
+import java.util.List;
 
 import androidx.annotation.ColorInt;
 
@@ -13,6 +17,8 @@ public class IShape {
     @ColorInt
     int mColor;
     RectF mRectF;
+    PointF mPoint1,mPoint2;
+    List<PointF> pointFList;
     public RectF getLocation(){return null;};
     public Bitmap draw(Bitmap srcBitmap){return null;};
 
@@ -20,6 +26,8 @@ public class IShape {
         mType = shape.mType;
         mColor = shape.mColor;
         mRectF = shape.mRectF;
+        mPoint1=shape.mPoint1;
+        mPoint2=shape.mPoint2;
     }
 
     public static IShape getRawShape(IShape shape) {
@@ -31,6 +39,8 @@ public class IShape {
             newShape = new OvalShape();
         } else if (shape.mType == RectShape.sShapeType){
             newShape = new RectShape();
+        }else if(shape.mType == LineShape.sShapeType){
+            newShape = new LineShape();
         }
         if (newShape != null) {
             newShape.copy(shape);

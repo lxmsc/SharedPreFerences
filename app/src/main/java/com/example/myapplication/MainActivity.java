@@ -2,10 +2,12 @@ package com.example.myapplication;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import top.defaults.colorpicker.ColorPickerPopup;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -25,6 +27,7 @@ import com.example.myapplication.Canvas.CanvasBuider;
 import com.example.myapplication.Canvas.CanvasManager;
 import com.example.myapplication.Shape.IShape;
 import com.example.myapplication.Shape.IShapeBuider;
+import com.example.myapplication.Shape.LineShape;
 import com.example.myapplication.Shape.OvalShape;
 import com.example.myapplication.Shape.RectShape;
 import com.example.myapplication.util.FileUtil;
@@ -61,12 +64,15 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.save).setOnClickListener(v -> {
             FileUtil.saveToFile(mCanvasManger.getCurrantCanvas(), "file0.png");
         });
+
     }
 
     protected void initCanvasImageView(final ImageView canasView){
 
         findViewById(R.id.rect).setOnClickListener((v) ->onclick(v));
         findViewById(R.id.oval).setOnClickListener((v) ->onclick(v));
+        findViewById(R.id.line).setOnClickListener((v) ->onclick(v));
+        findViewById(R.id.color).setOnClickListener((v) ->openColor(v));
 
         canasView.setOnTouchListener(new View.OnTouchListener() {
             PointF mStartPoint;
@@ -81,26 +87,16 @@ public class MainActivity extends AppCompatActivity {
                 }else if(event.getActionMasked()==MotionEvent.ACTION_MOVE){
                     if(mStartPoint!=null){
                         mEndPoint = point;
-                        RectF rectF = new RectF();
-                        rectF.top = Math.min(mStartPoint.y,mEndPoint.y);
-                        rectF.bottom = Math.max(mStartPoint.y,mEndPoint.y);
-                        rectF.left = Math.min(mStartPoint.x,mEndPoint.x);
-                        rectF.right = Math.max(mStartPoint.x,mEndPoint.x);
                         mCanvasManger.clearCache();
-                        mCanvasManger.drawCache(mCurrentShapeBuider.buildShape(rectF,0xff000000));
+                        mCanvasManger.drawCache(mCurrentShapeBuider.buildShape(mStartPoint,mEndPoint,0xff000000));
                         canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
                     }
                 }else if(event.getActionMasked()==MotionEvent.ACTION_UP
                 || event.getActionMasked()== MotionEvent.ACTION_CANCEL){
                     if(mStartPoint!=null){
                         mEndPoint = point;
-                        RectF rectF = new RectF();
-                        rectF.top = Math.min(mStartPoint.y,mEndPoint.y);
-                        rectF.bottom = Math.max(mStartPoint.y,mEndPoint.y);
-                        rectF.left = Math.min(mStartPoint.x,mEndPoint.x);
-                        rectF.right = Math.max(mStartPoint.x,mEndPoint.x);
                         mCanvasManger.clearCache();
-                        mCanvasManger.drawCache(mCurrentShapeBuider.buildShape(rectF,0xff000000));
+                        mCanvasManger.drawCache(mCurrentShapeBuider.buildShape(mStartPoint, mEndPoint, 0xff000000));
                         mCanvasManger.saveCanvas();
                         mStartPoint = null;
                         canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
@@ -123,12 +119,35 @@ public class MainActivity extends AppCompatActivity {
         boolean isCommitSuccessful = editor.commit();
 
     }
+    public void openColor(View view) {
+        new ColorPickerPopup.Builder(this)
+                .initialColor(Color.RED) // Set initial color
+                .enableAlpha(true) // Enable alpha slider or not
+                .okTitle("Choose")
+                .cancelTitle("Cancel")
+                .showIndicator(true)
+                .showValue(true)
+                .build()
+                .show(view, new ColorPickerPopup.ColorPickerObserver() {
+                    @Override
+                    public void onColorPicked(int color) {
+                        view.setBackgroundColor(color);
+                    }
+
+                    //@Override
+                    public void onColor(int color, boolean fromUser) {
+
+                    }
+                });
+    }
     public void onclick(View view){
         int id = view.getId();
         if(id == R.id.rect){
             mCurrentShapeBuider=new RectShape.Builder();
         }else if(id == R.id.oval){
             mCurrentShapeBuider=new OvalShape.Builder();
+        }else if(id == R.id.line){
+            mCurrentShapeBuider=new LineShape.Builder();
         }
     }
 

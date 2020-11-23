@@ -5,23 +5,26 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
 
-import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 
-public class RectShape extends IShape {
-    public static final int sShapeType = 1;
+public class LineShape extends IShape {
+    public static final int sShapeType = 3;
 
-    public RectShape(){}
-    public RectShape(RectF rectF){
+    public LineShape(){}
+    public LineShape(RectF rectF){
         this(rectF,0xFF000000);
     }
-
-    public RectShape(@Nullable RectF rectF,@Nullable int color){
+    public LineShape(PointF point1,PointF point2){this(point1,point2,0xff000000);}
+    public LineShape(@Nullable RectF rectF,@Nullable int color){
         mRectF = rectF;
         mColor = color;
+    }
+    public LineShape(@Nullable PointF point1,@Nullable PointF point2,@Nullable int color){
+        mPoint1=point1;
+        mPoint2=point2;
+        mColor=color;
     }
     @Override
     public RectF getLocation() {
@@ -36,24 +39,19 @@ public class RectShape extends IShape {
         Canvas canvas = new Canvas(srcBitmap);
         Paint paint = new Paint();
         paint.setColor(mColor);
-        canvas.drawRect(mRectF,paint);
+        canvas.drawLine(mPoint1.x,mPoint1.y,mPoint2.x,mPoint2.y,paint);
         return srcBitmap;
     }
     public static class Builder implements IShapeBuider{
 
         @Override
         public IShape buildShape(RectF rectF, int color) {
-            return new RectShape(rectF,color);
+            return new LineShape(rectF,color);
         }
 
         @Override
         public IShape buildShape(PointF point1, PointF point2, int color) {
-            RectF rectF = new RectF();
-            rectF.top = Math.min(point1.y,point2.y);
-            rectF.bottom = Math.max(point1.y,point2.y);
-            rectF.left = Math.min(point1.x,point2.x);
-            rectF.right = Math.max(point1.x,point2.x);
-            return new RectShape(rectF,color);
+            return new LineShape(point1,point2,color);
         }
     }
 
