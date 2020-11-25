@@ -42,7 +42,9 @@ import com.example.myapplication.Shape.RectShape;
 import com.example.myapplication.util.FileUtil;
 import com.example.myapplication.util.PermissionUtil;
 import com.example.myapplication.util.SaveGson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -53,10 +55,18 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private IShapeBuider mCurrentShapeBuider = new OvalShape.Builder();
     private String fileName = "my_file";
-    int mColor = 0xff000000;
+    int mColor = 0xFFFFFFFF;
+    private String sColorKey = "colorkey";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(SaveGson.get(sColorKey, int.class)==null){
+            mColor = 0xFFFFFFFF;
+        }
+        else{
+            mColor = SaveGson.get(sColorKey,int.class);
+        }
+
         setContentView(R.layout.activity_main);
         PermissionUtil.requestSavePermission(this, WRITE_PERMISSION_CODE);
         final ImageView canvasImageView = findViewById(R.id.canvas);
@@ -83,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.oval).setOnClickListener((v) ->onclick(v));
         findViewById(R.id.line).setOnClickListener((v) ->onclick(v));
         findViewById(R.id.color).setOnClickListener((v) ->openColor(v));
+        findViewById(R.id.color).setBackgroundColor(mColor);
         findViewById(R.id.empty).setOnClickListener((v) ->onClear(v,canasView));
 
         canasView.setOnTouchListener(new View.OnTouchListener() {
@@ -118,26 +129,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    public void startFloatingService(View view) {
-        if (!Settings.canDrawOverlays(this)) {
-            Toast.makeText(this, "当前无权限，请授权", Toast.LENGTH_SHORT);
-            startActivityForResult(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName())), 0);
-        } else {
-            startService(new Intent(MainActivity.this, FloatingService.class));
-        }
-    }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 0) {
-            if (!Settings.canDrawOverlays(this)) {
-                Toast.makeText(this, "授权失败", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "授权成功", Toast.LENGTH_SHORT).show();
-                startService(new Intent(MainActivity.this, FloatingService.class));
-            }
-        }
-    }
     protected void onDestroy(){
         super.onDestroy();
         mCanvasManger.onDestroy();
@@ -156,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
     }
     public void openColor(View view) {
         new ColorPickerPopup.Builder(this)
-                .initialColor(Color.RED) // Set initial color
+                .initialColor(mColor) // Set initial color
                 .enableAlpha(true) // Enable alpha slider or not
                 .okTitle("Choose")
                 .cancelTitle("Cancel")
@@ -168,12 +160,11 @@ public class MainActivity extends AppCompatActivity {
                     public void onColorPicked(int color) {
                         view.setBackgroundColor(color);
                         mColor = color;
+                        SaveGson.save(sColorKey,mColor,int.class);
                     }
 
-                    public void onColor(int color, boolean fromUser) {
-
-                    }
                 });
+
     }
     public void onclick(View view){
         int id = view.getId();
