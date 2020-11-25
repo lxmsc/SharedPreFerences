@@ -3,7 +3,6 @@ package com.example.myapplication.Canvas;
 import android.graphics.Bitmap;
 
 import com.example.myapplication.Shape.IShape;
-import com.example.myapplication.util.PermissionUtil;
 import com.example.myapplication.util.SaveGson;
 import com.google.gson.reflect.TypeToken;
 
@@ -12,7 +11,7 @@ import java.util.List;
 public class CanvasManager {
     private Canvas mCanvas;
     private CanvasBuider mBuider;
-    private Canvas mCacheMap;
+    private Canvas mCacheCanvas;
     public CanvasManager(CanvasBuider canvasBuider){
         mBuider = canvasBuider;
     }
@@ -35,31 +34,33 @@ public class CanvasManager {
         SaveGson.save(sListShapeKey,mCanvas.mShapes,new TypeToken<List<IShape>>(){}.getType());
     }
     public void drawCache(IShape iShape){
-        if(mCacheMap == null){
-            mCacheMap = new Canvas(mCanvas);
+        if(mCacheCanvas == null){
+            mCacheCanvas = new Canvas(mCanvas);
         }
-        mCacheMap.mShapes.add(iShape);
-        iShape.draw(mCacheMap.mCanvas);
+        mCacheCanvas.mShapes.add(iShape);
+        iShape.draw(mCacheCanvas.mCanvas);
     }
 
     public void saveCanvas(){
-        if(mCacheMap==null){
+        if(mCacheCanvas == null){
             return;
         }
         mCanvas.recycler();
-        mCanvas = mCacheMap;
-        mCacheMap = null;
+        mCanvas = mCacheCanvas;
+        mCacheCanvas = null;
     }
     public Bitmap getCurrantCanvas(){
-        return mCacheMap == null?mCanvas.mCanvas:mCacheMap.mCanvas;
+        return mCacheCanvas == null?mCanvas.mCanvas: mCacheCanvas.mCanvas;
     }
     public void clearCache(){
-        if(mCacheMap != null){
-            mCacheMap = null;
+        if(mCacheCanvas != null){
+            mCacheCanvas = null;
         }
     }
     public void onDestroy(){
-        mCanvas= null;
+        mCanvas = null;
     }
-
+    public void onClear(){
+        mCanvas = new Canvas(mBuider.getmWidth(),mBuider.getmHeight());
+    }
 }

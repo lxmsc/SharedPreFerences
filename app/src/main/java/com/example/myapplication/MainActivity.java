@@ -5,23 +5,32 @@ import androidx.appcompat.app.AppCompatActivity;
 import top.defaults.colorpicker.ColorPickerPopup;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.shapes.Shape;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.myapplication.Canvas.CanvasBuider;
 import com.example.myapplication.Canvas.CanvasManager;
@@ -44,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private IShapeBuider mCurrentShapeBuider = new OvalShape.Builder();
     private String fileName = "my_file";
+    int mColor = 0xff000000;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.oval).setOnClickListener((v) ->onclick(v));
         findViewById(R.id.line).setOnClickListener((v) ->onclick(v));
         findViewById(R.id.color).setOnClickListener((v) ->openColor(v));
+        findViewById(R.id.empty).setOnClickListener((v) ->onClear(v,canasView));
 
         canasView.setOnTouchListener(new View.OnTouchListener() {
             PointF mStartPoint;
@@ -88,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
                     if(mStartPoint!=null){
                         mEndPoint = point;
                         mCanvasManger.clearCache();
-                        mCanvasManger.drawCache(mCurrentShapeBuider.buildShape(mStartPoint,mEndPoint,0xff000000));
+                        mCanvasManger.drawCache(mCurrentShapeBuider.buildShape(mStartPoint,mEndPoint,mColor));
                         canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
                     }
                 }else if(event.getActionMasked()==MotionEvent.ACTION_UP
@@ -96,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
                     if(mStartPoint!=null){
                         mEndPoint = point;
                         mCanvasManger.clearCache();
-                        mCanvasManger.drawCache(mCurrentShapeBuider.buildShape(mStartPoint, mEndPoint, 0xff000000));
+                        mCanvasManger.drawCache(mCurrentShapeBuider.buildShape(mStartPoint, mEndPoint, mColor));
                         mCanvasManger.saveCanvas();
                         mStartPoint = null;
                         canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
@@ -107,10 +118,34 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    public void startFloatingService(View view) {
+        if (!Settings.canDrawOverlays(this)) {
+            Toast.makeText(this, "当前无权限，请授权", Toast.LENGTH_SHORT);
+            startActivityForResult(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName())), 0);
+        } else {
+            startService(new Intent(MainActivity.this, FloatingService.class));
+        }
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 0) {
+            if (!Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, "授权失败", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "授权成功", Toast.LENGTH_SHORT).show();
+                startService(new Intent(MainActivity.this, FloatingService.class));
+            }
+        }
+    }
     protected void onDestroy(){
         super.onDestroy();
         mCanvasManger.onDestroy();
+    }
+    public void onClear(View view,final ImageView canasView){
+        mCanvasManger.onClear();
+        mCanvasManger.clearCache();
+        canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
     }
     public void WriteSharedPreferences(View view){
         String content = editText.getText().toString();
@@ -132,9 +167,9 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onColorPicked(int color) {
                         view.setBackgroundColor(color);
+                        mColor = color;
                     }
 
-                    //@Override
                     public void onColor(int color, boolean fromUser) {
 
                     }
@@ -161,4 +196,5 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
 }
