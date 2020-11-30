@@ -1,6 +1,7 @@
 package com.example.myapplication.Shape;
 
 import android.graphics.Bitmap;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -14,8 +15,7 @@ public class IShape {
     public IShape(){
         mType = getType();
     }
-    @ColorInt
-    int mColor;
+    Paint mPaint;
     RectF mRectF;
     PointF mPoint1,mPoint2;
     List<PointF> pointFList;
@@ -24,7 +24,7 @@ public class IShape {
 
     public void copy(IShape shape) {
         mType = shape.mType;
-        mColor = shape.mColor;
+        mPaint = shape.mPaint;
         mRectF = shape.mRectF;
         mPoint1=shape.mPoint1;
         mPoint2=shape.mPoint2;

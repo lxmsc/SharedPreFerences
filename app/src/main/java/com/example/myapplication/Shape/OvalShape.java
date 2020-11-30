@@ -19,14 +19,10 @@ public class OvalShape extends IShape {
         super();
     }
 
-    public OvalShape(RectF rectF){
-        this(rectF,0xFF000000);
-    }
-
-    public OvalShape(@Nullable RectF rectF, @Nullable int color){
+    public OvalShape(@Nullable RectF rectF, @Nullable Paint paint){
         super();
         mRectF = rectF;
-        mColor = color;
+        mPaint = paint;
     }
 
     @Override
@@ -44,26 +40,24 @@ public class OvalShape extends IShape {
             return srcBitmap;
         }
         Canvas canvas = new Canvas(srcBitmap);
-        Paint paint = new Paint();
-        paint.setColor(mColor);
-        canvas.drawOval(mRectF,paint);
+        canvas.drawOval(mRectF,mPaint);
         return srcBitmap;
     }
     public static class Builder implements IShapeBuider{
 
         @Override
-        public IShape buildShape(RectF rectF, int color) {
-            return new OvalShape(rectF,color);
+        public IShape buildShape(RectF rectF, Paint paint) {
+            return new OvalShape(rectF,paint);
         }
 
         @Override
-        public IShape buildShape(PointF point1, PointF point2, int color) {
+        public IShape buildShape(PointF point1, PointF point2, Paint paint) {
             RectF rectF = new RectF();
             rectF.top = Math.min(point1.y,point2.y);
             rectF.bottom = Math.max(point1.y,point2.y);
             rectF.left = Math.min(point1.x,point2.x);
             rectF.right = Math.max(point1.x,point2.x);
-            return new OvalShape(rectF,color);
+            return new OvalShape(rectF,paint);
         }
     }
 }

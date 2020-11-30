@@ -1,65 +1,42 @@
 package com.example.myapplication;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import mvc.BaseActivity;
 import top.defaults.colorpicker.ColorPickerPopup;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PixelFormat;
-import android.graphics.Point;
 import android.graphics.PointF;
-import android.graphics.Rect;
-import android.graphics.RectF;
-import android.graphics.drawable.shapes.Shape;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.SeekBar;
 
 import com.example.myapplication.Canvas.CanvasBuider;
 import com.example.myapplication.Canvas.CanvasManager;
-import com.example.myapplication.Shape.IShape;
-import com.example.myapplication.Shape.IShapeBuider;
-import com.example.myapplication.Shape.LineShape;
-import com.example.myapplication.Shape.OvalShape;
-import com.example.myapplication.Shape.RectShape;
+import com.example.myapplication.popup.PopShapeData;
+import com.example.myapplication.popup.PopupController;
 import com.example.myapplication.util.FileUtil;
 import com.example.myapplication.util.PermissionUtil;
 import com.example.myapplication.util.SaveGson;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
-import java.util.List;
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
     private static final int WRITE_PERMISSION_CODE = 100;
-    private TextView textView;
-    private EditText editText;
     CanvasManager mCanvasManger;
     private SharedPreferences sharedPreferences;
-    private IShapeBuider mCurrentShapeBuider = new OvalShape.Builder();
-    private String fileName = "my_file";
     int mColor = 0xFFFFFFFF;
     private String sColorKey = "colorkey";
+    Paint mCurrentPaint = new Paint();
+    private SeekBar sb_normal;
+    private Context mContext = MainActivity.this;
+    private PopShapeData popShapeData = new PopShapeData();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         if(SaveGson.get(sColorKey, int.class)==null){
             mColor = 0xFFFFFFFF;
         }
@@ -67,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
             mColor = SaveGson.get(sColorKey,int.class);
         }
 
-        setContentView(R.layout.activity_main);
         PermissionUtil.requestSavePermission(this, WRITE_PERMISSION_CODE);
         final ImageView canvasImageView = findViewById(R.id.canvas);
         canvasImageView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -80,20 +56,20 @@ public class MainActivity extends AppCompatActivity {
                 canvasImageView.setImageBitmap(mCanvasManger.getCurrantCanvas());
             }
         });
+        findViewById(R.id.color).setOnClickListener((v) ->openColor(v));
+        findViewById(R.id.color).setBackgroundColor(mColor);
         initCanvasImageView(canvasImageView);
         findViewById(R.id.save).setOnClickListener(v -> {
             FileUtil.saveToFile(mCanvasManger.getCurrantCanvas(), "file0.png");
         });
 
+        mCurrentPaint.setStyle(Paint.Style.STROKE);
+        bindViews();
+
     }
 
     protected void initCanvasImageView(final ImageView canasView){
 
-        findViewById(R.id.rect).setOnClickListener((v) ->onclick(v));
-        findViewById(R.id.oval).setOnClickListener((v) ->onclick(v));
-        findViewById(R.id.line).setOnClickListener((v) ->onclick(v));
-        findViewById(R.id.color).setOnClickListener((v) ->openColor(v));
-        findViewById(R.id.color).setBackgroundColor(mColor);
         findViewById(R.id.empty).setOnClickListener((v) ->onClear(v,canasView));
 
         canasView.setOnTouchListener(new View.OnTouchListener() {
@@ -110,7 +86,8 @@ public class MainActivity extends AppCompatActivity {
                     if(mStartPoint!=null){
                         mEndPoint = point;
                         mCanvasManger.clearCache();
-                        mCanvasManger.drawCache(mCurrentShapeBuider.buildShape(mStartPoint,mEndPoint,mColor));
+                        mCanvasManger.drawCache(getData(PopShapeData.class, null)
+                                .iShapeBuider.buildShape(mStartPoint, mEndPoint, mCurrentPaint));
                         canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
                     }
                 }else if(event.getActionMasked()==MotionEvent.ACTION_UP
@@ -118,7 +95,8 @@ public class MainActivity extends AppCompatActivity {
                     if(mStartPoint!=null){
                         mEndPoint = point;
                         mCanvasManger.clearCache();
-                        mCanvasManger.drawCache(mCurrentShapeBuider.buildShape(mStartPoint, mEndPoint, mColor));
+                        mCanvasManger.drawCache(getData(PopShapeData.class, null)
+                                .iShapeBuider.buildShape(mStartPoint, mEndPoint, mCurrentPaint));
                         mCanvasManger.saveCanvas();
                         mStartPoint = null;
                         canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
@@ -130,21 +108,44 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void bindViews() {
+        sb_normal = findViewById(R.id.sb_normal);
+        sb_normal.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                mCurrentPaint.setStrokeWidth(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+    }
     protected void onDestroy(){
         super.onDestroy();
         mCanvasManger.onDestroy();
     }
+
+    @Override
+    protected int getContentLayoutId() {
+        return R.layout.activity_main;
+    }
+
+    @Override
+    protected void initControllers() {
+        addController(new PopupController(this));
+    }
+
     public void onClear(View view,final ImageView canasView){
         mCanvasManger.onClear();
         mCanvasManger.clearCache();
+        mCanvasManger.setLastListShape();
         canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
-    }
-    public void WriteSharedPreferences(View view){
-        String content = editText.getText().toString();
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("content",content);
-        boolean isCommitSuccessful = editor.commit();
-
     }
     public void openColor(View view) {
         new ColorPickerPopup.Builder(this)
@@ -165,16 +166,6 @@ public class MainActivity extends AppCompatActivity {
 
                 });
 
-    }
-    public void onclick(View view){
-        int id = view.getId();
-        if(id == R.id.rect){
-            mCurrentShapeBuider=new RectShape.Builder();
-        }else if(id == R.id.oval){
-            mCurrentShapeBuider=new OvalShape.Builder();
-        }else if(id == R.id.line){
-            mCurrentShapeBuider=new LineShape.Builder();
-        }
     }
 
     @Override

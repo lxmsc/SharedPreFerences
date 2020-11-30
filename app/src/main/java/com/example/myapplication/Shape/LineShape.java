@@ -13,18 +13,14 @@ public class LineShape extends IShape {
     public static final int sShapeType = 3;
 
     public LineShape(){}
-    public LineShape(RectF rectF){
-        this(rectF,0xFF000000);
-    }
-    public LineShape(PointF point1,PointF point2){this(point1,point2,0xff000000);}
-    public LineShape(@Nullable RectF rectF,@Nullable int color){
+    public LineShape(@Nullable RectF rectF,@Nullable Paint paint){
         mRectF = rectF;
-        mColor = color;
+        mPaint = paint;
     }
-    public LineShape(@Nullable PointF point1,@Nullable PointF point2,@Nullable int color){
+    public LineShape(@Nullable PointF point1,@Nullable PointF point2,@Nullable Paint paint){
         mPoint1=point1;
         mPoint2=point2;
-        mColor=color;
+        mPaint = paint;
     }
     @Override
     public RectF getLocation() {
@@ -37,21 +33,18 @@ public class LineShape extends IShape {
             return srcBitmap;
         }
         Canvas canvas = new Canvas(srcBitmap);
-        Paint paint = new Paint();
-        paint.setColor(mColor);
-        canvas.drawLine(mPoint1.x,mPoint1.y,mPoint2.x,mPoint2.y,paint);
+        canvas.drawLine(mPoint1.x,mPoint1.y,mPoint2.x,mPoint2.y,mPaint);
         return srcBitmap;
     }
     public static class Builder implements IShapeBuider{
-
         @Override
-        public IShape buildShape(RectF rectF, int color) {
-            return new LineShape(rectF,color);
+        public IShape buildShape(RectF rectF, Paint paint) {
+            return new LineShape(rectF,paint);
         }
 
         @Override
-        public IShape buildShape(PointF point1, PointF point2, int color) {
-            return new LineShape(point1,point2,color);
+        public IShape buildShape(PointF point1, PointF point2, Paint paint) {
+            return new LineShape(point1,point2,paint);
         }
     }
 

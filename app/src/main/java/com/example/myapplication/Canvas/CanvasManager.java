@@ -62,5 +62,6 @@ public class CanvasManager {
     }
     public void onClear(){
         mCanvas = new Canvas(mBuider.getmWidth(),mBuider.getmHeight());
+
     }
 }
