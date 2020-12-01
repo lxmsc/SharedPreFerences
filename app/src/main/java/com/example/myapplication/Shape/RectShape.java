@@ -16,9 +16,10 @@ public class RectShape extends IShape {
 
     public RectShape(){}
 
-    public RectShape(@Nullable RectF rectF,@Nullable Paint paint){
+    public RectShape(@Nullable RectF rectF,@Nullable int color, float paintWidth){
         mRectF = rectF;
-        mPaint = paint;
+        mColor = color;
+        mPaintWidth = paintWidth;
     }
     @Override
     public RectF getLocation() {
@@ -31,24 +32,28 @@ public class RectShape extends IShape {
             return srcBitmap;
         }
         Canvas canvas = new Canvas(srcBitmap);
-        canvas.drawRect(mRectF,mPaint);
+        Paint paint = new Paint();
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(mColor);
+        paint .setStrokeWidth(mPaintWidth);
+        canvas.drawRect(mRectF,paint);
         return srcBitmap;
     }
     public static class Builder implements IShapeBuider{
 
         @Override
-        public IShape buildShape(RectF rectF, Paint paint) {
-            return new RectShape(rectF,paint);
+        public IShape buildShape(RectF rectF, int color, float paintWidth) {
+            return new RectShape(rectF,color,paintWidth);
         }
 
         @Override
-        public IShape buildShape(PointF point1, PointF point2, Paint paint) {
+        public IShape buildShape(PointF point1, PointF point2, int color, float paintWidth) {
             RectF rectF = new RectF();
             rectF.top = Math.min(point1.y,point2.y);
             rectF.bottom = Math.max(point1.y,point2.y);
             rectF.left = Math.min(point1.x,point2.x);
             rectF.right = Math.max(point1.x,point2.x);
-            return new RectShape(rectF,paint);
+            return new RectShape(rectF,color,paintWidth);
         }
     }
 

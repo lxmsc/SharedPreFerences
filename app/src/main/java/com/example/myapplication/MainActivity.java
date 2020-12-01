@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import mvc.BaseActivity;
 import top.defaults.colorpicker.ColorPickerPopup;
@@ -27,23 +28,27 @@ public class MainActivity extends BaseActivity {
     private static final int WRITE_PERMISSION_CODE = 100;
     CanvasManager mCanvasManger;
     private SharedPreferences sharedPreferences;
+    @ColorInt
     int mColor = 0xFFFFFFFF;
+    float mPaintWidth = 10;
     private String sColorKey = "colorkey";
     Paint mCurrentPaint = new Paint();
     private SeekBar sb_normal;
-    private Context mContext = MainActivity.this;
-    private PopShapeData popShapeData = new PopShapeData();
+    private PopShapeData mPopShapeData = new PopShapeData();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         if(SaveGson.get(sColorKey, int.class)==null){
             mColor = 0xFFFFFFFF;
+            mCurrentPaint.setColor(mColor);
         }
         else{
             mColor = SaveGson.get(sColorKey,int.class);
+            mCurrentPaint.setColor(mColor);
         }
-
+        mCurrentPaint.setStyle(Paint.Style.STROKE);
+        mCurrentPaint.setStrokeWidth(10);
         PermissionUtil.requestSavePermission(this, WRITE_PERMISSION_CODE);
         final ImageView canvasImageView = findViewById(R.id.canvas);
         canvasImageView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -63,7 +68,7 @@ public class MainActivity extends BaseActivity {
             FileUtil.saveToFile(mCanvasManger.getCurrantCanvas(), "file0.png");
         });
 
-        mCurrentPaint.setStyle(Paint.Style.STROKE);
+
         bindViews();
 
     }
@@ -86,8 +91,8 @@ public class MainActivity extends BaseActivity {
                     if(mStartPoint!=null){
                         mEndPoint = point;
                         mCanvasManger.clearCache();
-                        mCanvasManger.drawCache(getData(PopShapeData.class, null)
-                                .iShapeBuider.buildShape(mStartPoint, mEndPoint, mCurrentPaint));
+                        mCanvasManger.drawCache(getData(PopShapeData.class, mPopShapeData)
+                                .iShapeBuider.buildShape(mStartPoint, mEndPoint, mColor ,mPaintWidth));
                         canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
                     }
                 }else if(event.getActionMasked()==MotionEvent.ACTION_UP
@@ -95,8 +100,8 @@ public class MainActivity extends BaseActivity {
                     if(mStartPoint!=null){
                         mEndPoint = point;
                         mCanvasManger.clearCache();
-                        mCanvasManger.drawCache(getData(PopShapeData.class, null)
-                                .iShapeBuider.buildShape(mStartPoint, mEndPoint, mCurrentPaint));
+                        mCanvasManger.drawCache(getData(PopShapeData.class, mPopShapeData)
+                                .iShapeBuider.buildShape(mStartPoint, mEndPoint, mColor, mPaintWidth));
                         mCanvasManger.saveCanvas();
                         mStartPoint = null;
                         canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
@@ -113,7 +118,7 @@ public class MainActivity extends BaseActivity {
         sb_normal.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                mCurrentPaint.setStrokeWidth(progress);
+                mPaintWidth=progress;
             }
 
             @Override

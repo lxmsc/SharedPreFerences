@@ -1,6 +1,7 @@
 package com.example.myapplication.Canvas;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import com.example.myapplication.Shape.IShape;
 import com.example.myapplication.util.SaveGson;

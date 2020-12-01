@@ -12,7 +12,6 @@ import com.example.myapplication.Shape.LineShape;
 import com.example.myapplication.Shape.OvalShape;
 import com.example.myapplication.Shape.RectShape;
 import com.example.myapplication.util.AppEnv;
-import com.example.myapplication.util.PermissionUtil;
 
 import io.reactivex.ObservableEmitter;
 import mvc.BaseActivity;

@@ -15,7 +15,9 @@ public class IShape {
     public IShape(){
         mType = getType();
     }
-    Paint mPaint;
+    //Paint mPaint;
+    int mColor;
+    float mPaintWidth;
     RectF mRectF;
     PointF mPoint1,mPoint2;
     List<PointF> pointFList;
@@ -24,10 +26,12 @@ public class IShape {
 
     public void copy(IShape shape) {
         mType = shape.mType;
-        mPaint = shape.mPaint;
+        //mPaint = shape.mPaint;
+        mColor = shape.mColor;
+        mPaintWidth = shape.mPaintWidth;
         mRectF = shape.mRectF;
-        mPoint1=shape.mPoint1;
-        mPoint2=shape.mPoint2;
+        mPoint1 = shape.mPoint1;
+        mPoint2 = shape.mPoint2;
     }
 
     public static IShape getRawShape(IShape shape) {
