@@ -11,6 +11,7 @@ import com.example.myapplication.Shape.IShapeBuider;
 import com.example.myapplication.Shape.LineShape;
 import com.example.myapplication.Shape.OvalShape;
 import com.example.myapplication.Shape.RectShape;
+import com.example.myapplication.Shape.RoundShape;
 import com.example.myapplication.util.AppEnv;
 
 import io.reactivex.ObservableEmitter;
@@ -44,6 +45,7 @@ public class PopupController extends BaseController {
             view.findViewById(R.id.rect).setOnClickListener((v) -> onclick(v));
             view.findViewById(R.id.oval).setOnClickListener((v) -> onclick(v));
             view.findViewById(R.id.line).setOnClickListener((v) -> onclick(v));
+            view.findViewById(R.id.round).setOnClickListener((v) -> onclick(v));
         } else {
             if (mPopupWindow.isShowing()) {
                 mPopupWindow.dismiss();
@@ -61,6 +63,8 @@ public class PopupController extends BaseController {
             mIShapeBuilder = new OvalShape.Builder();
         } else if (id == R.id.line) {
             mIShapeBuilder = new LineShape.Builder();
+        }else if (id == R.id.round) {
+            mIShapeBuilder = new RoundShape.Builder();
         }
     }
 }

@@ -42,6 +42,11 @@ public class RectShape extends IShape {
     public static class Builder implements IShapeBuider{
 
         @Override
+        public IShape buildShape() {
+            return new RectShape();
+        }
+
+        @Override
         public IShape buildShape(RectF rectF, int color, float paintWidth) {
             return new RectShape(rectF,color,paintWidth);
         }

@@ -13,16 +13,20 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 
 import com.example.myapplication.Canvas.CanvasBuider;
 import com.example.myapplication.Canvas.CanvasManager;
+import com.example.myapplication.Shape.IShape;
 import com.example.myapplication.popup.PopShapeData;
 import com.example.myapplication.popup.PopupController;
 import com.example.myapplication.util.FileUtil;
 import com.example.myapplication.util.PermissionUtil;
 import com.example.myapplication.util.SaveGson;
+
+import static com.example.myapplication.Shape.IShape.getRawShape;
 
 public class MainActivity extends BaseActivity {
     private static final int WRITE_PERMISSION_CODE = 100;
@@ -35,6 +39,8 @@ public class MainActivity extends BaseActivity {
     Paint mCurrentPaint = new Paint();
     private SeekBar sb_normal;
     private PopShapeData mPopShapeData = new PopShapeData();
+    Button button_cursor;
+    int mCursor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +53,7 @@ public class MainActivity extends BaseActivity {
             mColor = SaveGson.get(sColorKey,int.class);
             mCurrentPaint.setColor(mColor);
         }
+
         mCurrentPaint.setStyle(Paint.Style.STROKE);
         mCurrentPaint.setStrokeWidth(10);
         PermissionUtil.requestSavePermission(this, WRITE_PERMISSION_CODE);
@@ -67,45 +74,128 @@ public class MainActivity extends BaseActivity {
         findViewById(R.id.save).setOnClickListener(v -> {
             FileUtil.saveToFile(mCanvasManger.getCurrantCanvas(), "file0.png");
         });
+        button_cursor = (Button) findViewById(R.id.cursor);
+        button_cursor.setText(R.string.cursor_draw);
+        mCursor=0;
+        button_cursor.setOnClickListener(v->{
+            mCursor ^= 1;
+            if(mCursor==0){
+                button_cursor.setText(R.string.cursor_draw);
+            }
+            else{
+                button_cursor.setText(R.string.cursor_chose);
+            }
 
-
+        });
         bindViews();
 
     }
-
-    protected void initCanvasImageView(final ImageView canasView){
-
-        findViewById(R.id.empty).setOnClickListener((v) ->onClear(v,canasView));
+    protected void initCanvasImageView(final ImageView canasView) {
+        findViewById(R.id.empty).setOnClickListener(v -> onClear(v, canasView));
 
         canasView.setOnTouchListener(new View.OnTouchListener() {
             PointF mStartPoint;
             PointF mEndPoint;
+            IShape iShape;
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                PointF point = new PointF();
-                point.x = event.getX();
-                point.y = event.getY();
-                if(event.getActionMasked() == MotionEvent.ACTION_DOWN){
-                    mStartPoint = point;
-                }else if(event.getActionMasked()==MotionEvent.ACTION_MOVE){
-                    if(mStartPoint!=null){
-                        mEndPoint = point;
+                int shapeType = getData(PopShapeData.class, mPopShapeData).iShapeBuider.buildShape().getType();
+                PointF pointF = new PointF();
+                pointF.x = event.getX();
+                pointF.y = event.getY();
+
+                if(mCursor == 1){
+                    if(event.getActionMasked() == MotionEvent.ACTION_DOWN){
                         mCanvasManger.clearCache();
-                        mCanvasManger.drawCache(getData(PopShapeData.class, mPopShapeData)
-                                .iShapeBuider.buildShape(mStartPoint, mEndPoint, mColor ,mPaintWidth));
-                        canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
+                        iShape = mCanvasManger.getChoseShape(pointF);
+                        if(iShape!=null) {
+                            mStartPoint = pointF;
+                            mCanvasManger.drawCache(iShape);
+                            canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
+                        }
                     }
-                }else if(event.getActionMasked()==MotionEvent.ACTION_UP
-                || event.getActionMasked()== MotionEvent.ACTION_CANCEL){
-                    if(mStartPoint!=null){
-                        mEndPoint = point;
-                        mCanvasManger.clearCache();
-                        mCanvasManger.drawCache(getData(PopShapeData.class, mPopShapeData)
-                                .iShapeBuider.buildShape(mStartPoint, mEndPoint, mColor, mPaintWidth));
-                        mCanvasManger.saveCanvas();
-                        mStartPoint = null;
-                        canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
-                        mCanvasManger.setLastListShape();
+                    else if(event.getActionMasked() == MotionEvent.ACTION_MOVE){
+                        if(iShape!=null&&mStartPoint!=null) {
+                            mEndPoint = pointF;
+                            mCanvasManger.clearCache();
+                            PointF pointF1 = new PointF(mEndPoint.x - mStartPoint.x, mEndPoint.y - mStartPoint.y);
+                            mCanvasManger.drawCache(iShape.addPoint(pointF1));
+                            canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
+                        }
+                    }
+                    else if(event.getActionMasked() == MotionEvent.ACTION_UP
+                            || event.getActionMasked() == MotionEvent.ACTION_CANCEL){
+                        if(iShape!=null&&mStartPoint!=null) {
+                            mCanvasManger.clearCache();
+                            mEndPoint = pointF;
+                            PointF pointF1 = new PointF(mEndPoint.x - mStartPoint.x, mEndPoint.y - mStartPoint.y);
+                            mCanvasManger.drawCache(iShape.addPoint(pointF1));
+                            mCanvasManger.saveCanvas();
+                            mStartPoint = null;
+                            canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
+                            mCanvasManger.setLastListShape();
+                        }
+                    }
+                }
+                else if(mCursor==2){
+                    mCanvasManger.getChoseShape(pointF);
+                    canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
+
+                }
+                else if(mCursor==0) {
+                    if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                        if (shapeType == 3) {
+                            mStartPoint = pointF;
+                        } else {
+                            mStartPoint = new PointF(pointF.x - 200, pointF.y - 100);
+                            mEndPoint = new PointF(pointF.x + 200, pointF.y + 100);
+                            mCanvasManger.clearCache();
+                            mCanvasManger.drawCache(getData(PopShapeData.class, mPopShapeData)
+                                    .iShapeBuider.buildShape(mStartPoint, mEndPoint, mColor, mPaintWidth));
+                            canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
+                        }
+
+                    } else if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
+                        if (shapeType == 3) {
+                            if (mStartPoint != null) {
+                                mEndPoint = pointF;
+                                mCanvasManger.clearCache();
+                                mCanvasManger.drawCache(getData(PopShapeData.class, mPopShapeData)
+                                        .iShapeBuider.buildShape(mStartPoint, mEndPoint, mColor, mPaintWidth));
+                                canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
+                            }
+                        } else {
+                            mStartPoint = new PointF(pointF.x - 200, pointF.y - 100);
+                            mEndPoint = new PointF(pointF.x + 200, pointF.y + 100);
+                            mCanvasManger.clearCache();
+                            mCanvasManger.drawCache(getData(PopShapeData.class, mPopShapeData)
+                                    .iShapeBuider.buildShape(mStartPoint, mEndPoint, mColor, mPaintWidth));
+                            canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
+                        }
+                    } else if (event.getActionMasked() == MotionEvent.ACTION_UP
+                            || event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+                        if (shapeType == 3) {
+                            if (mStartPoint != null) {
+                                mEndPoint = pointF;
+                                mCanvasManger.clearCache();
+                                mCanvasManger.drawCache(getData(PopShapeData.class, mPopShapeData)
+                                        .iShapeBuider.buildShape(mStartPoint, mEndPoint, mColor, mPaintWidth));
+                                mCanvasManger.saveCanvas();
+                                mStartPoint = null;
+                                canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
+                                mCanvasManger.setLastListShape();
+                            }
+                        } else {
+                            mStartPoint = new PointF(pointF.x - 200, pointF.y - 100);
+                            mEndPoint = new PointF(pointF.x + 200, pointF.y + 100);
+                            mCanvasManger.clearCache();
+                            mCanvasManger.drawCache(getData(PopShapeData.class, mPopShapeData)
+                                    .iShapeBuider.buildShape(mStartPoint, mEndPoint, mColor, mPaintWidth));
+                            mCanvasManger.saveCanvas();
+                            mStartPoint = null;
+                            canasView.setImageBitmap(mCanvasManger.getCurrantCanvas());
+                            mCanvasManger.setLastListShape();
+                        }
                     }
                 }
                 return true;

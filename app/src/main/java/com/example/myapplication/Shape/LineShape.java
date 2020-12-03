@@ -40,6 +40,11 @@ public class LineShape extends IShape {
     public static class Builder implements IShapeBuider{
 
         @Override
+        public IShape buildShape() {
+            return new LineShape();
+        }
+
+        @Override
         public IShape buildShape(RectF rectF, int color, float paintWidth) {
             return null;
         }

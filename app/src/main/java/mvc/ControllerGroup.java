@@ -1,6 +1,5 @@
 package mvc;
 
-import android.app.Activity;
 import android.view.View;
 
 import java.util.ArrayList;

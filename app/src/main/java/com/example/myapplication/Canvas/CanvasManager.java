@@ -1,12 +1,15 @@
 package com.example.myapplication.Canvas;
 
 import android.graphics.Bitmap;
+import android.graphics.PointF;
 import android.util.Log;
 
 import com.example.myapplication.Shape.IShape;
+import com.example.myapplication.Shape.LineShape;
 import com.example.myapplication.util.SaveGson;
 import com.google.gson.reflect.TypeToken;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CanvasManager {
@@ -31,6 +34,25 @@ public class CanvasManager {
         }
         saveCanvas();
     }
+    public IShape getChoseShape(PointF pointF){
+        List<IShape> iShapeList = SaveGson.get(sListShapeKey, new TypeToken<List<IShape>>(){}.getType());
+        for(IShape iShape : iShapeList){
+            if(iShape.isIn(pointF)){
+                iShapeList.remove(iShape);
+                clearCache();
+                onClear();
+                for(IShape iShape1 : iShapeList){
+                    iShape1 = IShape.getRawShape(iShape1);
+                    drawCache(iShape1);
+                }
+                saveCanvas();
+                setLastListShape();
+                return iShape;
+            }
+        }
+        return null;
+    }
+
     public void setLastListShape(){
         SaveGson.save(sListShapeKey,mCanvas.mShapes,new TypeToken<List<IShape>>(){}.getType());
     }

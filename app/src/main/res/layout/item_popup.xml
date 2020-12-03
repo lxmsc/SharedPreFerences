@@ -27,4 +27,12 @@
         android:background="@drawable/popup_background"
         android:text="线" />
 
+    <Button
+        android:id="@+id/round"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/popup_background"
+        android:text="圆角矩形" />
+
 </LinearLayout>

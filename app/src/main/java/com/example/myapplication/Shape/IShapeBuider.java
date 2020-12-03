@@ -6,7 +6,7 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 
 public interface IShapeBuider {
-
+    IShape buildShape();
     IShape buildShape(RectF rectF, int color, float paintWidth);
     IShape buildShape(PointF point1, PointF point2, int color, float paintWidth);
 }
